@@ -1,0 +1,1320 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[UTF8]{ctex}
+\usepackage[left=1cm, right=1cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{multicol}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+\lstset{
+    language=C++,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\bfseries,            
+    commentstyle=\itshape,             
+    stringstyle=\ttfamily,
+    numbers=left,                      
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=tb,                          
+    breaklines=true,                  
+    tabsize=4,
+    showstringspaces=false
+}
+\renewcommand{\cftsecdotsep}{\cftdotsep}
+\setlength{\cftbeforesecskip}{2pt}
+
+% --- 页眉页脚设置 ---
+\pagestyle{fancy}
+\fancyhf{} % 清空默认
+\fancyfoot[C]{\thepage} % 底部居中：页码
+\renewcommand{\headrulewidth}{0.4pt} % 页眉分割线
+
+\begin{document}
+
+% 开启双栏模式
+\begin{multicols*}{2}
+
+% 1. 生成目录
+\tableofcontents
+\vspace{1cm}
+
+% --- 正文 ---
+
+\section{杂项}
+
+\subsection{头文件}
+\begin{lstlisting}
+#include<bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+typedef unsigned long long ull;
+typedef __int128 i128;
+
+void solve(){
+}
+
+int main(){
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    int _=1;
+    //cin>>_;
+    cout<<fixed<<setprecision(15);
+    while(_--)solve();
+}
+\end{lstlisting}
+
+\subsection{i128读写}
+\begin{lstlisting}
+void read(i128&x){
+    x=0;int f=1;charch=getchar();
+    while(ch<'0'||ch>'9'){if(ch=='-')f=-1;ch=getchar();}
+    while(ch>='0'&&ch<='9'){x=x*10+ch-'0';ch=getchar();}
+    x*=f;
+}
+void print(i128 x) {
+    if(x<0){putchar('-');x=-x;}
+    if(x>9)print(x/10);
+    putchar(x%10+'0');
+}
+int main(){
+    i128 a;
+    read(a);
+    print(a);
+}
+\end{lstlisting}
+
+\subsection{差分}
+\begin{lstlisting}
+一维差分
+对于原始数组 a[]
+通过 d[i]=a[i]-a[i-1] 初始化出 d[] 差分数组
+对差分数组进行若干次修改
+
+对区间 [l,r] 加 k
+void add(int l,int r,int k){
+    d[l]+=k;
+    d[r+1]-=k;
+}
+
+最后累加得到结果
+下标从 1 到 n
+void up(int n){
+    for(int i=1;i<=n;++i){
+        d[i]+=d[i-1];
+        a[i]=d[i];
+    }
+}
+
+二维差分
+为了避免若干边界问题
+对于一个 n*m 的原始数组 a[n][m]
+加工出一个 (n+2)*(m+2) 的差分数组 d[n+2][m+2]
+最外层都用 0 包裹
+
+对以[i,j]为左上角,[x,y]为右下角的矩形 + k
+void add(int i,int j,int x,int y,int k){
+    d[i][j]+=k;
+    d[i][y+1]-=k;
+    d[x+1][j]-=k;
+    d[x+1][y+1]+=k;
+}
+
+累加操作类比二维前缀和
+void up(int n,int m){
+    for(int i=1;i<=n;++i){
+        for(int j=1;j<=m;++j){
+            d[i][j]=d[i-1][j]+d[i][j-1]-d[i-1][j-1];
+        }
+    }
+}
+
+等差数列差分
+区间[l,r]加上一个以s为首项d为公差e为末项的等差数列
+void add(int l,int r,int s,int d,int e){
+    a[l]+=s;
+    a[l+1]+=d-s;
+    a[r+1]+=-d-e;
+    a[r+2]+=e;
+}
+累加两次
+void up(int n){
+    for(int i=1;i<=n;++i){
+        a[i]+=a[i-1];
+    }
+    for(int i=1;i<=n;++i){
+        a[i]+=a[i-1];
+    }
+}
+\end{lstlisting}
+
+\subsection{KMP}
+至今不会 KMP
+
+$\pi[i]$ 表示子串 $s[0 \dots i]$ 最长的相等真前后缀长度。
+
+使用 0-indexed 写法
+\begin{lstlisting}
+//返回pattern在text中所有出现位置的起始索引
+vector<int> kmp(string&text,string&pattern){
+    int n=text.length();
+    int m =pattern.length();
+    if (m == 0) return {};
+    //1.求解 pi 数组
+    vector<int>pi(m);
+    for (int i=1,j=0;i<m;i++){
+        while(j&&pattern[i]!=pattern[j])j=pi[j-1];
+        if(pattern[i]==pattern[j])j++;
+        pi[i]=j;
+    }
+    //2.字符串匹配
+    //记录匹配的起始起点
+    vector<int> res;
+    for(int i=0,j=0;i<n;i++){
+        while(j&&text[i]!=pattern[j])j=pi[j-1];
+        if(text[i]==pattern[j])j++;
+        if(j==m){
+            res.push_back(i-m+1); 
+            j=pi[j-1];
+        }
+    }
+    return res;
+}
+\end{lstlisting}
+
+\section{数学}
+\subsection{快速幂}
+\begin{lstlisting}
+ll qpow(ll b,ll e){
+    ll res=1;
+    while(e){
+        if(e&1)res*=b;
+        b*=b;
+        e>>=1;
+    }
+    return res;
+}
+
+ll qpow(ll b,ll e,ll MOD){
+    b%=MOD;
+    ll res=1;
+    while(e){
+        if(e&1)res=res*b%MOD;
+        b=b*b%MOD;
+        e>>=1;
+    }
+    return res;
+}
+
+i128 mul(i128 a,i128 b,i128 MOD){
+    a%=MOD;
+    i128 res=0;
+    while(b){
+        if(b&1)res=(res+a)%MOD;
+        a=(a<<1)%MOD;
+        b>>=1;
+    }
+    return res;
+}
+i128 qpow(i128 b,i128 e,i128 MOD){
+    b%=MOD;
+    i128 ans=1;
+    while(e){
+        if(e&1)ans=mul(ans,b,MOD);
+        b=mul(b,b,MOD);
+        e>>=1;
+    }
+    return ans;
+}
+\end{lstlisting}
+
+\subsection{质因子分解}
+得到 n 的所有质因子
+\begin{lstlisting}
+vector<int>funtion(int n){
+    vector<int>p;
+    for(int i=2;i*i<=n;++i){
+        if(n%i==0){
+            p.push_back(i);
+            while(n%i==0)n/=i;
+        }
+    }
+    if(n>1)p.push_back(n);
+    return p;
+}
+\end{lstlisting}
+
+\subsection{质数筛}
+\begin{lstlisting}
+const int N=1e5;
+bitset<N>isp;
+vector<int>p;
+void ehrlich(int n){
+    isp.set();
+    isp[0]=isp[1]=0;
+    for(int i=2;i*i<=n;++i){
+        if(isp[i]){
+            p.push_back(i);
+            for(int j=i*i;j<=n;j+=i){
+                isp[j]=0;
+            }
+        }
+    }
+}
+void euler(int n){
+    isp.set();
+    isp[0]=isp[1]=0;
+    for(int i=2;i<=n;++i){
+        if(isp[i])p.push_back(i);
+        for(int x:p){
+            if(x*i>n)break;
+            isp[x*i]=0;
+            if(i%x==0)break;
+        }
+    }
+}
+仅记数
+int ehrlich_cnt(int n){
+    if(n<=1)return 0;
+    vector<int>isp(n+1,1);
+    int cnt=(n+1)/2;
+    for(int i=3;i*i<=n;i+=2){
+        if(isp[i]){
+            for(int j=i*i;j<=n;j+=2*i){
+                if(isp[j]){
+                    isp[j]=0;
+                    cnt--;
+                }
+            }
+        }
+    }
+    return cnt;
+}
+\end{lstlisting}
+
+\subsection{逆元}
+求 X 在 mod(MOD)意义下的逆元
+\begin{lstlisting}
+typedef long long ll;
+const int MOD=1e9+7;
+费马小定理
+要求 MOD 为质数
+ll qMODow(ll b,ll e,ll MOD){
+    ll res=1;
+    b%=MOD;
+    while(e){
+        if(e&1)res=res*b%MOD;
+        e>>=1;
+        b=b*b%MOD;
+    }
+    return res;
+}
+ll inv(ll X,ll MOD){
+    return qMODow(X,MOD-2,MOD);
+}
+拓展欧几里得
+要求 x 与 MOD 互质
+int ex_gcd(int a,int b,int &x,int &y){
+    if(b==0){
+        x=1,y=0;
+        return a;
+    }
+    int g=ex_gcd(b,a%b,y,x);
+    y-=a/b*x;
+    return g;
+}
+int inv(int X,int p){
+    int x,y;
+    ex_gcd(X,p,x,y);
+    return (x%p+p)%p;
+}
+线性处理逆元
+const int N=1e8+5;
+int inv[N];
+void init(int n,int p){
+    inv[1]=1;
+    for(int i=2;i<=n;++i){
+        inv[i]=1LL*(p-p/i)*inv[p%i]%p;
+    }
+}
+\end{lstlisting}
+
+\subsection{组合数学}
+\begin{lstlisting}
+const int N=1e6+5;
+const int MOD=1e9+7;
+ll qpow(ll b,ll e){
+    ll res=1;
+    while(e){
+        if(e&1)res=res*b%MOD;
+        b=b*b%MOD;
+        e>>=1;
+    }
+    return res;
+}
+ll f[N],inv[N];
+void init(){
+    f[0]=f[1]=1;
+    for(int i=2;i<N;++i){
+        f[i]=i*f[i-1]%MOD;
+    }
+    inv[N-1]=qpow(f[N-1],MOD-2);
+    for(int i=N-1;i;--i){
+        inv[i-1]=i*inv[i]%MOD;
+    }
+}
+排列数
+ll A(int n,int m){ 
+    if(n<0||m<0||n<m)return 0;
+    return f[n]*inv[n-m]%MOD;
+}
+组合数
+ll C(int n,int m){ 
+    if(n<0||m<0||n<m)return 0;
+    return f[n]*inv[m]%MOD*inv[n-m]%MOD;
+}
+隔板 将n个元素分成m份(每份至少一个元素)
+ll C_1(int n,int m){
+    if(m==0)return n==0?1:0;
+    if(n<m)return 0;
+    return C(n-1,m-1);
+}
+\end{lstlisting}
+
+\subsection{进制转换}
+\begin{lstlisting}
+namespace X_to_Y{
+    char dtoc(int d){
+        if(d>9)return 'A'+d-10;
+        return '0'+d;
+    }
+    int ctod(char c){
+        if(c>'a')return c-'a'+10;
+        if(c>='A')return c-'A'+10;
+        return c-'0';
+    }
+    ll pos_to_ten(string num,int x){
+        ll t=0;
+        for(char c:num){
+            t=t*x+ctod(c);
+        }
+        return t;
+    }
+    ll neg_to_ten(string num,int x) {
+        ll t=0;
+        ll b=1;
+        for(int i=num.size()-1;i>=0;i--){
+            t+=ctod(num[i])*b;
+            b*=x;
+        }
+        return t;
+    }
+    string ten_to_y(ll t,int y){
+        if(t==0)return "0";
+        string ans="";
+        while(t){
+            int d=t%y;
+            t/=y;
+            if(d<0){
+                d+=-y;
+                t++;
+            }
+            ans=dtoc(d)+ans;
+        }
+        return ans;
+    }
+    string x_to_y(string num,int x,int y){
+        if(num=="0")return num;
+        ll t=(x<0)?neg_to_ten(num,x):pos_to_ten(num,x);
+        return ten_to_y(t,y);
+    }
+}using namespace X_to_Y;
+\end{lstlisting}
+
+\subsection{二元一次不定方程}
+\begin{lstlisting}
+裴蜀定理
+对于不全为零的整数 a,b
+一定存在一组 x,y
+使得 ax + by = gcd(a,b)
+推论:
+ax + by = 1 有解
+当且仅当，gcd(a,b)=1, 即 a,b 互质
+ax + by = c 有解
+当且仅当，gcd(a,b) | c, 即 c 是 gcd(a,b) 的倍数
+可由两项推广到多项
+拓展欧几里得定理
+解 ax + by = gcd(a,b)
+返回值为gcd(a, b)
+同时求出 ax+by=gcd(a,b) 的一组解 x,y
+int ex_gcd(int a,int b,int &x,int &y){
+    if(b==0){
+        x=1,y=0;
+        return a;
+    }
+    int g=ex_gcd(b,a%b,y,x);
+    y-=a/b*x;
+    return g;
+}
+二元一次方程
+解 ax + by = c
+一、有解判定
+根据裴蜀定理：当且仅当 gcd(a,b) | c 时有解
+二、特解 X,Y
+根据拓展欧几里得定理：
+先求 x, y ：ax + by = gcd(a,b)
+X = x * c/gcd(a,b)
+Y = y * c/gcd(a,b)
+三、通解
+参数 kx,ky ：
+kx = b / gcd(a,b)
+ky = a / gcd(a,b)
+通解 x,y：
+x = X + k \* kx
+y = Y - k \* ky
+四、最小正整数解
+x = ( X % kx + kx ) % kx
+\end{lstlisting}
+\section{数据结构}
+\subsection{并查集}
+\begin{lstlisting}
+template<class>
+class UF{
+    vector<int>siz,fa;
+    int cnt;
+public:
+    UF(int n):cnt(n),fa(n),siz(n){
+        for(int i=0;i<n;++i){
+            fa[i]=i;
+            siz[i]=1;
+        }
+    }
+    int find(int x){
+        return x==fa[x]?x:fa[x]=find(fa[x]);
+    }
+    bool check(int a,int b){
+        return find(a)==find(b);
+    }
+    bool merge(int a,int b){
+        a=find(a);
+        b=find(b);
+        if(a==b)return 0;
+        if(siz[a]>siz[b]){
+            fa[b]=a;
+            siz[a]+=siz[b];
+        }
+        else{
+            fa[a]=b;
+            siz[b]+=siz[a];
+        }
+        cnt--;
+        return 1;
+    }
+    int count(){
+        return cnt;
+    }
+    int size(int x){
+        return siz[find(x)];
+    }
+};
+\end{lstlisting}
+\subsection{单调队列}
+大常数
+\begin{lstlisting}
+template<typename T>
+class MonotonicQueue{
+    deque<T>q,m,M;
+public:
+    void push(T e){
+        q.push_back(e);
+        while(!m.empty()&&m.back()>e)m.pop_back();
+        m.push_back(e);
+        while(!M.empty()&&M.back()<e)M.pop_back();
+        M.push_back(e);
+    }
+    T max(){return M.front();}
+    T min(){return m.front();}
+    T pop(){
+        T x=q.front();
+        q.pop_front();
+        if(x==m.front())m.pop_front();
+        if(x==M.front())M.pop_front();
+        return x;
+    }
+    int size()const{return q.size();}
+    bool empty()const{return q.size()==0;}
+};
+\end{lstlisting}
+\subsection{单调栈}
+获取每一个元素两侧第一个大于（小于）它的元素
+\begin{lstlisting}
+const int N=1e5;
+int a[N];
+int top,st[N],L[N],R[N];
+int n;
+void init(){
+    top=-1;
+    for(int r=0;r<n;++r){
+        // "<=" 获取第一个大于a[i]的元素
+        // ">=" 获取第一个小于a[i]的元素
+        while(top!=-1&&a[st[top]]<=a[r]){
+            int i=st[top--];
+            L[i]=top==-1?-1:st[top];
+            R[i]=r;
+        }
+        st[++top]=r;
+    }
+    while(top!=-1){
+        int i=st[top--];
+        L[i]=top==-1?-1:st[top];
+        R[i]=n;
+    }
+    //处理重复元素
+    for(int i=n-2;i>=0;--i){
+        if(R[i]!=n&&a[R[i]]==a[i]){
+            R[i]=R[R[i]];
+        }
+    }
+}
+\end{lstlisting}
+\subsection{懒删除堆}
+\begin{lstlisting}
+template<typename T,typename cmp=less<T>>
+    class LazyHeap{
+        priority_queue<T,vector<T>,cmp>pq;
+        unordered_map<T,int>tag;
+        size_t siz=0;//真实大小
+        void up(){
+            while(pq.size()&&tag[pq.top()]>0){
+                tag[pq.top()]--;
+                pq.pop();
+            }
+        }
+    public:
+        size_t size(){
+            return siz;
+        }
+        void erase(T x){//懒删除
+            tag[x]++;
+            siz--;
+        }
+        T top(){
+            up();
+            return pq.top(); 
+        }
+        void pop(){
+            up();
+            pq.pop();
+            siz--;
+        }
+        void push(T x){
+            pq.push(x);
+            siz++;
+        }
+    };
+\end{lstlisting}
+\subsection{Trie}
+支持数字，大小写字母
+\begin{lstlisting}
+class Trie{
+    private:
+    static const int N=1e7+5;
+    int T[N][26+26+10];
+    int pass[N];
+    int end[N];
+    int cnt=1;
+    int get_index(char x){
+        if(x>='0'&&x<='9')return x-'0';
+        if(x>='a'&&x<='z')return x-'a'+10;
+        return x-'A'+36;
+    }
+public:
+    void add(string word){
+        int cur=1;
+        pass[cur]++;
+        for(char x:word){
+            int nex=get_index(x);
+            if(T[cur][nex]==0){
+                T[cur][nex]=++cnt;
+            }
+            cur=T[cur][nex];
+            pass[cur]++;
+        }
+        end[cur]++;
+    }
+    int search(string word){
+        int cur=1;
+        for(char x:word){
+            int nex=get_index(x);
+            if(T[cur][nex]==0)return 0;
+            cur=T[cur][nex];
+        }
+        return end[cur];
+    }
+    int pre_cnt(string pre){
+        int cur=1;
+        for(char x:pre){
+            int nex=get_index(x);
+            if(T[cur][nex]==0)return 0;
+            cur=T[cur][nex];
+        }
+        return pass[cur];
+    }
+    void remove(string word){
+        if(search(word)==0)return;
+        int cur=1;
+        for(char x:word){
+            int nex=get_index(x);
+            if(--pass[T[cur][nex]]==0){
+                T[cur][nex]=0;
+                return;
+            }
+            cur=T[cur][nex];
+        }
+        end[cur]--;
+    }
+    void clean(){
+        for(int i=1;i<=cnt;++i){
+            pass[i]=0;
+            end[i]=0;
+            memset(T[i],0,sizeof(T[0]));
+        }
+        cnt=1;
+    }
+};
+\end{lstlisting}
+\subsection{异或Trie}
+
+add(x) 向集合中添加元素
+del(x) 从集合中删除元素
+query(x) y 属于集合，查询 x XOR y 的最大值
+
+\begin{lstlisting}
+template<typename T>
+class Trie{
+    int N;
+    struct node{
+        int p;
+        vector<node*>nex;
+        node():p(0),nex(2,nullptr){}
+    };
+    node*root;
+public:
+    Trie(int n):N(n){
+        root=new node();
+    }
+    void add(T x){
+        node*cur=root;
+        for(int i=N-1;i>=0;--i){
+            int j=(x>>i)&1;
+            if(cur->nex[j]==nullptr)cur->nex[j]=new node();
+            cur=cur->nex[j];
+            cur->p++;
+        }
+    }
+    void del(T x){
+        node*cur=root;
+        for(int i=N-1;i>=0;--i){
+            int j=(x>>i)&1;
+            cur=cur->nex[j];
+            cur->p--;
+        }
+    }
+    T query(T x){
+        T y=0;
+        node*cur=root;
+        for(int i=N-1;i>=0;--i){
+            int u=(x>>i)&1;
+            int v=u^1;
+            if(cur->nex[v]&&cur->nex[v]->p){
+                y|=(v<<i);
+                cur=cur->nex[v];
+            }
+            else{
+                y|=(u<<i);
+                cur=cur->nex[u];
+            }
+        }
+        return x^y;
+    } 
+};
+\end{lstlisting}
+\subsection{树状数组}
+单点修改，区间查询
+
+索引从 1 开始。
+\begin{lstlisting}
+struct BIT{
+    int n;
+    vector<ll> tree;
+    BIT(int _n):n(_n),tree(_n+1,0){}
+    int lowbit(int x){return x&(-x);}
+    //单点修改:a[x]+=k
+    void add(int x,ll k){
+        for(;x<=n;x+=lowbit(x))tree[x]+=k;
+    }
+    //前缀和查询:求a[1]到a[x]的和
+    ll query(int x){
+        ll res=0;
+        for(;x>0;x-=lowbit(x))res+=tree[x];
+        return res;
+    }
+    //区间查询:求a[L]到a[R]的和
+    ll query(int L,int R){
+        return query(R)-query(L-1);
+    }
+};
+\end{lstlisting}
+不知道怎么整理线段树的板子
+\subsection{线段树}
+区间加，区间乘，查询区间和
+\begin{lstlisting}
+const int N=1e5+5;
+const int P;// MOD
+ll a[N];
+ll sum[N<<2];
+ll add[N<<2];
+ll mul[N<<2];
+void up(int x){
+    sum[x]=(sum[x<<1]+sum[x<<1|1])%P;
+}
+void built(int x,int l,int r){
+    if(l==r){
+        sum[x]=a[l]%P;
+    }
+    else{
+        int mid=(l+r)>>1;
+        built(x<<1,l,mid);
+        built(x<<1|1,mid+1,r);
+        up(x);
+    }
+    add[x]=0;
+    mul[x]=1;
+}
+void lazy_add(int x,ll k,int siz){
+    sum[x]=(sum[x]+k*siz)%P;
+    add[x]=(add[x]+k)%P;
+}
+void lazy_mul(int x,int k){
+    sum[x]=sum[x]*k%P;
+    mul[x]=mul[x]*k%P;
+    add[x]=add[x]*k%P;
+}
+void down(int x,int lsiz,int rsiz){
+    if(mul[x]!=1){
+        lazy_mul(x<<1,mul[x]);
+        lazy_mul(x<<1|1,mul[x]);
+        mul[x]=1;
+    }
+    if(add[x]){
+        lazy_add(x<<1,add[x],lsiz);
+        lazy_add(x<<1|1,add[x],rsiz);
+        add[x]=0;
+    }
+}
+void MUL(int x,int l,int r,int ql,int qr,ll k){
+    if(ql<=l&&r<=qr){
+        lazy_mul(x,k);
+        return;
+    }
+    int mid=(l+r)>>1;
+    down(x,mid-l+1,r-mid);
+    if(ql<=mid)MUL(x<<1,l,mid,ql,qr,k);
+    if(qr>mid)MUL(x<<1|1,mid+1,r,ql,qr,k);
+    up(x);
+}
+void ADD(int x,int l,int r,int ql,int qr,ll k){
+    if(ql<=l&&r<=qr){
+        lazy_add(x,k,r-l+1);
+        return;
+    }
+    int mid=(l+r)>>1;
+    down(x,mid-l+1,r-mid);
+    if(ql<=mid)ADD(x<<1,l,mid,ql,qr,k);
+    if(qr>mid)ADD(x<<1|1,mid+1,r,ql,qr,k);
+    up(x);
+}
+int query(int x,int l,int r,int ql,int qr){
+    if(ql<=l&&r<=qr){
+        return sum[x];
+    }
+    int mid=(l+r)>>1;
+    down(x,mid-l+1,r-mid);
+    int ans=0;
+    if(ql<=mid)ans=(ans+query(x<<1,l,mid,ql,qr))%P;
+    if(qr>mid)ans=(ans+query(x<<1|1,mid+1,r,ql,qr))%P;
+    return ans;
+}
+\end{lstlisting}
+
+\subsection{线段树}
+区间加，区间覆盖，查询区间最大值
+\begin{lstlisting}
+const int N=1e6+5;
+ll a[N];
+ll Max[N<<2];
+ll add[N<<2];
+ll cha[N<<2];
+bool need[N<<2];
+void up(int x){
+    Max[x]=max(Max[x<<1],Max[x<<1|1]);
+}
+void built(int x,int l,int r){
+    if(l==r){
+        Max[x]=a[l];
+    }
+    else{
+        int mid=(l+r)>>1;
+        built(x<<1,l,mid);
+        built(x<<1|1,mid+1,r);
+        up(x);
+    }
+    add[x]=0;
+    need[x]=0;
+}
+void lazy_add(int x,ll k){
+    Max[x]+=k;
+    add[x]+=k;
+}
+void lazy_change(int x,ll k){
+    add[x]=0;
+    Max[x]=k;
+    need[x]=1;
+    cha[x]=k;
+}
+void down(int x){
+    if(need[x]){
+        lazy_change(x<<1,cha[x]);
+        lazy_change(x<<1|1,cha[x]);
+        need[x]=0;
+    }
+    if(add[x]){
+        lazy_add(x<<1,add[x]);
+        lazy_add(x<<1|1,add[x]);
+        add[x]=0;
+    }
+}
+ll query(int x,int l,int r,int ql,int qr){
+    if(ql<=l&&r<=qr)return Max[x];
+    int mid=(l+r)>>1;
+    down(x);
+    ll ans=LONG_LONG_MIN;
+    if(ql<=mid)ans=max(ans,query(x<<1,l,mid,ql,qr));
+    if(qr>mid)ans=max(ans,query(x<<1|1,mid+1,r,ql,qr));
+    return ans;
+}
+void change(int x,int l,int r,int ql,int qr,ll k){
+    if(ql<=l&&r<=qr){
+        lazy_change(x,k);
+        return;
+    }
+    int mid=(l+r)>>1;
+    down(x);
+    if(ql<=mid)change(x<<1,l,mid,ql,qr,k);
+    if(qr>mid)change(x<<1|1,mid+1,r,ql,qr,k);
+    up(x);
+}
+void ADD(int x,int l,int r,int ql,int qr,ll k){
+    if(ql<=l&&r<=qr){
+        lazy_add(x,k);
+        return;
+    }
+    int mid=(l+r)>>1;
+    down(x);
+    if(ql<=mid)ADD(x<<1,l,mid,ql,qr,k);
+    if(qr>mid)ADD(x<<1|1,mid+1,r,ql,qr,k);
+    up(x);
+}
+void solve(){
+    int n,m,op,l,r;
+    ll k;
+    cin>>n>>m;
+    for(int i=1;i<=n;++i)cin>>a[i];
+    built(1,1,n);
+    while(m--){
+        cin>>op;
+        if(op==1){
+            cin>>l>>r>>k;
+            change(1,1,n,l,r,k);
+        }
+        if(op==2){
+            cin>>l>>r>>k;
+            ADD(1,1,n,l,r,k);
+        }
+        if(op==3){
+            cin>>l>>r;
+            cout<<query(1,1,n,l,r)<<'\n';
+        }
+    } 
+}
+\end{lstlisting}
+
+\subsection{线段树3}
+新生赛打卡题
+
+01线段树，区间和并
+\begin{lstlisting}
+const int N=1e5+10;
+int a[N];
+int sum[N<<2];
+int L0[N<<2];
+int R0[N<<2];
+int M0[N<<2];
+int L1[N<<2];
+int R1[N<<2];
+int M1[N<<2];
+int tag1[N<<2];
+int tag2[N<<2];
+
+void up(int x,int l,int r){
+    int mid=(l+r)>>1;
+    sum[x]=sum[x<<1]+sum[x<<1|1];
+    L0[x]=L0[x<<1];
+    if(M0[x<<1]==mid-l+1)L0[x]+=L0[x<<1|1];
+    L1[x]=L1[x<<1];
+    if(M1[x<<1]==mid-l+1)L1[x]+=L1[x<<1|1];
+    R0[x]=R0[x<<1|1];
+    if(M0[x<<1|1]==r-mid)R0[x]+=R0[x<<1];
+    R1[x]=R1[x<<1|1];
+    if(M1[x<<1|1]==r-mid)R1[x]+=R1[x<<1];
+    M0[x]=max({M0[x<<1],M0[x<<1|1],R0[x<<1]+L0[x<<1|1]});
+    M1[x]=max({M1[x<<1],M1[x<<1|1],R1[x<<1]+L1[x<<1|1]});
+}
+void lazy_cover(int x,int l,int r,int val){
+    tag1[x]=val;
+    tag2[x]=0;
+    if(val==1){
+        sum[x]=L1[x]=R1[x]=M1[x]=r-l+1;
+        L0[x]=R0[x]=M0[x]=0;
+    }
+    else{
+        sum[x]=L1[x]=R1[x]=M1[x]=0;
+        L0[x]=R0[x]=M0[x]=r-l+1;
+    }
+}
+void lazy_re(int x,int l,int r){
+    if(tag1[x]!=-1){
+        tag1[x]^=1;
+    }
+    else{
+        tag2[x]^=1;
+    }
+    sum[x]=r-l+1-sum[x];
+    swap(L1[x],L0[x]);
+    swap(R1[x],R0[x]);
+    swap(M1[x],M0[x]);
+}
+void down(int x,int l,int r){
+    int mid=(l+r)>>1;
+    if(tag1[x]!=-1){
+        lazy_cover(x<<1,l,mid,tag1[x]);
+        lazy_cover(x<<1|1,mid+1,r,tag1[x]);
+        tag1[x]=-1;
+    }
+    if(tag2[x]){
+        lazy_re(x<<1,l,mid);
+        lazy_re(x<<1|1,mid+1,r);
+        tag2[x]=0;
+    }
+}
+void built(int x,int l,int r){
+    tag1[x]=-1;
+    tag2[x]=0;
+    if(l==r){
+        sum[x]=a[l];
+        L0[x]=R0[x]=M0[x]=1-a[l];
+        L1[x]=R1[x]=M1[x]=a[l];
+    }
+    else{
+        int mid=(l+r)>>1;
+        built(x<<1,l,mid);
+        built(x<<1|1,mid+1,r);
+        up(x,l,r);
+    }
+}
+void cover(int x,int l,int r,int ql,int qr,int val){
+    if(ql<=l&&r<=qr){
+        lazy_cover(x,l,r,val);
+        return;
+    }
+    down(x,l,r);
+    int mid=(l+r)>>1;
+    if(ql<=mid)cover(x<<1,l,mid,ql,qr,val);
+    if(qr>mid)cover(x<<1|1,mid+1,r,ql,qr,val);
+    up(x,l,r);
+}
+void re(int x,int l,int r,int ql,int qr){
+    if(ql<=l&&r<=qr){
+        lazy_re(x,l,r);
+        return;
+    }
+    down(x,l,r);
+    int mid=(l+r)>>1;
+    if(ql<=mid)re(x<<1,l,mid,ql,qr);
+    if(qr>mid)re(x<<1|1,mid+1,r,ql,qr);
+    up(x,l,r);
+}
+int query3(int x,int l,int r,int ql,int qr){
+    if(ql<=l&&r<=qr){
+        return sum[x];
+    }
+    down(x,l,r);
+    int res=0;
+    int mid=(l+r)>>1;
+    if(ql<=mid)res+=query3(x<<1,l,mid,ql,qr);
+    if(qr>mid)res+=query3(x<<1|1,mid+1,r,ql,qr);
+    return res;
+}
+int query4(int x,int l,int r,int ql,int qr){
+    if(ql<=l&&r<=qr){
+        return M1[x];
+    }
+    down(x,l,r);
+    int mid=(l+r)>>1;
+    if(ql>mid)return query4(x<<1|1,mid+1,r,ql,qr);
+    if(qr<=mid)return query4(x<<1,l,mid,ql,qr);
+    int res=max(query4(x<<1,l,mid,ql,qr),query4(x<<1|1,mid+1,r,ql,qr));
+    int L=min(R1[x<<1],mid-ql+1);
+    int R=min(L1[x<<1|1],qr-mid);
+    return max(res,L+R);
+}
+\end{lstlisting}
+
+\subsection{线段树4}
+矩形面积并，矩形周长并
+\begin{lstlisting}
+    面积
+const int N=3e5+5;
+struct rectangle{
+    int x1,y1,x2,y2; 
+}rec[N/2];
+struct lines{
+    int x,y1,y2,k;
+}L[N];
+int Ysort[N];
+int total[N<<2];
+int cover[N<<2];
+int cnt[N<<2];
+ 
+void up(int x){
+    if(cnt[x]>0)cover[x]=total[x];
+    else cover[x]=cover[x<<1]+cover[x<<1|1];
+}
+void built(int x,int l,int r){
+    if(l<r){
+        int mid=(l+r)>>1;
+        built(x<<1,l,mid);
+        built(x<<1|1,mid+1,r);
+    }
+    total[x]=Ysort[r+1]-Ysort[l];
+    cover[x]=0;
+    cnt[x]=0;
+}
+void change(int x,int l,int r,int ql,int qr,int k){
+    if(ql<=l&&r<=qr){
+        cnt[x]+=k;
+    }else{
+        int mid=(l+r)>>1;
+        if(ql<=mid)change(x<<1,l,mid,ql,qr,k);
+        if(qr>mid)change(x<<1|1,mid+1,r,ql,qr,k);
+    }
+    up(x);
+}
+int init(int n){
+    for(int i=1,j=i+n;i<=n;++i,++j){
+        L[i]={rec[i].x1,rec[i].y1,rec[i].y2,1};
+        L[j]={rec[i].x2,rec[i].y1,rec[i].y2,-1};
+        Ysort[i]=rec[i].y1;
+        Ysort[j]=rec[i].y2;
+    }
+    int siz=n<<1;
+    sort(L+1,L+siz+1,[&](auto a,auto b){return a.x<b.x;});
+    sort(Ysort+1,Ysort+siz+1);
+    int m=unique(Ysort+1,Ysort+siz+1)-(Ysort+1);
+    Ysort[m+1]=Ysort[m];
+    return m;
+}
+ll merge_S(int n){
+    int m=init(n);
+    built(1,1,m);
+    ll ans=0;
+    int pre=0;
+    int siz=n<<1;
+    for(int i=1;i<=siz;i++){
+        ans+=1LL*cover[1]*(L[i].x-pre);
+        pre=L[i].x;
+        int l=lower_bound(Ysort+1,Ysort+m+1,L[i].y1)-Ysort;
+        int r=lower_bound(Ysort+1,Ysort+m+1,L[i].y2)-Ysort-1;
+        change(1,1,m,l,r,L[i].k);
+    }
+    return ans;
+}
+
+    周长
+const int N=1e5+5;
+struct rectangle{
+    int x1,y1,x2,y2; 
+}rec[N/2];
+struct lines_y{
+    int x,y1,y2,k;
+}Ly[N];
+struct lines_x{
+    int y,x1,x2,k;
+}Lx[N];
+int Ysort[N],Xsort[N];
+int total[N<<2];
+int cover[N<<2];
+int cnt[N<<2];
+ 
+void up(int x){
+    if(cnt[x]>0)cover[x]=total[x];
+    else cover[x]=cover[x<<1]+cover[x<<1|1];
+}
+void change(int x,int l,int r,int ql,int qr,int k){
+    if(ql<=l&&r<=qr){
+        cnt[x]+=k;
+    }else{
+        int mid=(l+r)>>1;
+        if(ql<=mid)change(x<<1,l,mid,ql,qr,k);
+        if(qr>mid)change(x<<1|1,mid+1,r,ql,qr,k);
+    }
+    up(x);
+}
+void built_y(int x,int l,int r){
+    if(l<r){
+        int mid=(l+r)>>1;
+        built_y(x<<1,l,mid);
+        built_y(x<<1|1,mid+1,r);
+    }
+    total[x]=Ysort[r+1]-Ysort[l];
+    cover[x]=0;
+    cnt[x]=0;
+}
+int init_y(int n){
+    for(int i=1,j=i+n;i<=n;++i,++j){
+        Ly[i]={rec[i].x1,rec[i].y1,rec[i].y2,1};
+        Ly[j]={rec[i].x2,rec[i].y1,rec[i].y2,-1};
+        Ysort[i]=rec[i].y1;
+        Ysort[j]=rec[i].y2;
+    }
+    int siz=n<<1;
+    sort(Ly+1,Ly+siz+1,[&](auto a,auto b){return a.x<b.x;});
+    sort(Ysort+1,Ysort+siz+1);
+    int m=unique(Ysort+1,Ysort+siz+1)-(Ysort+1);
+    Ysort[m+1]=Ysort[m];
+    return m;
+}
+ll scan_y(int n){
+    int m=init_y(n);
+    built_y(1,1,m);
+    ll ans=0;
+    int pre;
+    int siz=n<<1;
+    for(int i=1;i<=siz;i++){
+        pre=cover[1];
+        int l=lower_bound(Ysort+1,Ysort+m+1,Ly[i].y1)-Ysort;
+        int r=lower_bound(Ysort+1,Ysort+m+1,Ly[i].y2)-Ysort-1;
+        change(1,1,m,l,r,Ly[i].k);
+        ans+=abs(pre-cover[1]);
+    }
+    return ans;
+}
+void built_x(int x,int l,int r){
+    if(l<r){
+        int mid=(l+r)>>1;
+        built_x(x<<1,l,mid);
+        built_x(x<<1|1,mid+1,r);
+    }
+    total[x]=Xsort[r+1]-Xsort[l];
+    cover[x]=0;
+    cnt[x]=0;
+}
+int init_x(int n){
+    for(int i=1,j=i+n;i<=n;++i,++j){
+        Lx[i]={rec[i].y1,rec[i].x1,rec[i].x2,1};
+        Lx[j]={rec[i].y2,rec[i].x1,rec[i].x2,-1};
+        Xsort[i]=rec[i].x1;
+        Xsort[j]=rec[i].x2;
+    }
+    int siz=n<<1;
+    sort(Lx+1,Lx+siz+1,[&](auto a,auto b){return a.y<b.y;});
+    sort(Xsort+1,Xsort+siz+1);
+    int m=unique(Xsort+1,Xsort+siz+1)-(Xsort+1);
+    Xsort[m+1]=Xsort[m];
+    return m;
+}
+ll scan_x(int n){
+    int m=init_x(n);
+    built_x(1,1,m);
+    ll ans=0;
+    int pre;
+    int siz=n<<1;
+    for(int i=1;i<=siz;i++){
+        pre=cover[1];
+        int l=lower_bound(Xsort+1,Xsort+m+1,Lx[i].x1)-Xsort;
+        int r=lower_bound(Xsort+1,Xsort+m+1,Lx[i].x2)-Xsort-1;
+        change(1,1,m,l,r,Lx[i].k);
+        ans+=abs(pre-cover[1]);
+    }
+    return ans;
+}
+ll merge_C(int n){
+    return scan_x(n)+scan_y(n);
+}
+\end{lstlisting}
+
+
+\section{图论}
+\subsection{拓扑排序}
+有向无环图
+\begin{lstlisting}
+const int N=1e5;
+vector<int>gra[N];
+int in[N];
+void top(int n){
+    for(int u=1;u<=n;++u){
+        for(int v:gra[u]){
+            in[v]++;
+        }
+    }
+    queue<int>q;
+    for(int i=1;i<=n;++i){
+        if(in[i]==0){
+            q.push(i);
+        }
+    }
+    while(q.size()){
+        int u=q.front();
+        q.pop();
+        for(int v:gra[u]){
+            if(--in[v]==0){
+                q.push(v);
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection{}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{}
+\begin{lstlisting}
+
+\end{lstlisting}
+
+\end{multicols*}
+\end{document}
