@@ -22,26 +22,35 @@
 }
 \renewcommand{\cftsecdotsep}{\cftdotsep}
 \setlength{\cftbeforesecskip}{2pt}
+% --- 压缩标题间距 ---
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{1.2ex plus 1ex minus .2ex}{0.5ex plus .2ex}
+\titlespacing*{\subsection}{0pt}{1ex plus 1ex minus .2ex}{0.5ex plus .2ex}
 
+% --- 防止标题和代码脱节 ---
+\usepackage{needspace}
 % --- 页眉页脚设置 ---
 \pagestyle{fancy}
 \fancyhf{} % 清空默认
+\fancyfoot[L]{\footnotesize ssbt} % 底部左侧：署名
 \fancyfoot[C]{\thepage} % 底部居中：页码
 \renewcommand{\headrulewidth}{0.4pt} % 页眉分割线
 
+\raggedbottom
+
 \begin{document}
 
-% 开启双栏模式
-\begin{multicols*}{2}
-
-% 1. 生成目录
+% 1. 生成单栏目录并强制换页
 \tableofcontents
-\vspace{1cm}
+\newpage
+
+% 开启正文双栏模式
+\begin{multicols*}{2}
 
 % --- 正文 ---
 
 \section{杂项}
-
+\needspace{8\baselineskip}
 \subsection{头文件}
 \begin{lstlisting}
 #include<bits/stdc++.h>
@@ -63,7 +72,7 @@ int main(){
     while(_--)solve();
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
 \subsection{i128读写}
 \begin{lstlisting}
 void read(i128&x){
@@ -83,7 +92,7 @@ int main(){
     print(a);
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
 \subsection{差分}
 \begin{lstlisting}
 一维差分
@@ -96,7 +105,6 @@ void add(int l,int r,int k){
     d[l]+=k;
     d[r+1]-=k;
 }
-
 最后累加得到结果
 下标从 1 到 n
 void up(int n){
@@ -119,7 +127,6 @@ void add(int i,int j,int x,int y,int k){
     d[x+1][j]-=k;
     d[x+1][y+1]+=k;
 }
-
 累加操作类比二维前缀和
 void up(int n,int m){
     for(int i=1;i<=n;++i){
@@ -128,7 +135,6 @@ void up(int n,int m){
         }
     }
 }
-
 等差数列差分
 区间[l,r]加上一个以s为首项d为公差e为末项的等差数列
 void add(int l,int r,int s,int d,int e){
@@ -147,7 +153,7 @@ void up(int n){
     }
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
 \subsection{KMP}
 至今不会 KMP
 
@@ -181,8 +187,66 @@ vector<int> kmp(string&text,string&pattern){
     return res;
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
+\subsection{String Hash}
+1-indexed
+\begin{lstlisting}
+const int N = 1e6 + 5;
+const int P = 131;
+ull h[N], p[N];
+void init_hash(const string& s) {
+    p[0] = 1;
+    for (int i = 1; i <= s.length(); ++i) {
+        p[i] = p[i - 1] * P;
+        h[i] = h[i - 1] * P + s[i - 1]; 
+    }
+}
+// O(1)查询原串中 [l, r] 区间的哈希值
+ull get_hash(int l, int r) {
+    return h[r] - h[l - 1] * p[r - l + 1];
+}
+\end{lstlisting}
+\needspace{8\baselineskip}
+\subsection{背包}
+\begin{lstlisting}
+// W: 背包总容量, N: 物品数量
+// weight[i], value[i]: 第 i 个物品的重量和价值
+vector<long long> dp(W + 1, 0);
+// 01 背包
+for (int i = 0; i < N; ++i) {
+    for (int j = W; j >= weight[i]; --j) {
+        dp[j] = max(dp[j], dp[j - weight[i]] + value[i]);
+    }
+}
+// 完全背包
+for (int i = 0; i < N; ++i) {
+    for (int j = weight[i]; j <= W; ++j) {
+        dp[j] = max(dp[j], dp[j - weight[i]] + value[i]);
+    }
+}
+// 多重背包
+struct Item { int w, v; };
+vector<Item> items;
+// count[i] 表示第 i 个物品的数量
+for (int i = 0; i < N; ++i) {
+    int c = count[i];
+    for (int k = 1; k <= c; k <<= 1) {
+        items.push_back({weight[i] * k, value[i] * k});
+        c -= k;
+    }
+    if (c > 0) {
+        items.push_back({weight[i] * c, value[i] * c});
+    }
+}
+for (auto& item : items) {
+    for (int j = W; j >= item.w; --j) {
+        dp[j] = max(dp[j], dp[j - item.w] + item.v);
+    }
+}
+\end{lstlisting}
+\columnbreak
 \section{数学}
+\needspace{8\baselineskip}
 \subsection{快速幂}
 \begin{lstlisting}
 ll qpow(ll b,ll e){
@@ -227,7 +291,7 @@ i128 qpow(i128 b,i128 e,i128 MOD){
     return ans;
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
 \subsection{质因子分解}
 得到 n 的所有质因子
 \begin{lstlisting}
@@ -243,7 +307,7 @@ vector<int>funtion(int n){
     return p;
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
 \subsection{质数筛}
 \begin{lstlisting}
 const int N=1e5;
@@ -291,7 +355,7 @@ int ehrlich_cnt(int n){
     return cnt;
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
 \subsection{逆元}
 求 X 在 mod(MOD)意义下的逆元
 \begin{lstlisting}
@@ -338,7 +402,7 @@ void init(int n,int p){
     }
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
 \subsection{组合数学}
 \begin{lstlisting}
 const int N=1e6+5;
@@ -380,7 +444,7 @@ ll C_1(int n,int m){
     return C(n-1,m-1);
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
 \subsection{进制转换}
 \begin{lstlisting}
 namespace X_to_Y{
@@ -430,23 +494,37 @@ namespace X_to_Y{
     }
 }using namespace X_to_Y;
 \end{lstlisting}
-
+\columnbreak
 \subsection{二元一次不定方程}
 \begin{lstlisting}
 裴蜀定理
+
 对于不全为零的整数 a,b
+
 一定存在一组 x,y
+
 使得 ax + by = gcd(a,b)
+
 推论:
+
 ax + by = 1 有解
+
 当且仅当，gcd(a,b)=1, 即 a,b 互质
+
 ax + by = c 有解
+
 当且仅当，gcd(a,b) | c, 即 c 是 gcd(a,b) 的倍数
+
 可由两项推广到多项
+
 拓展欧几里得定理
+
 解 ax + by = gcd(a,b)
+
 返回值为gcd(a, b)
+
 同时求出 ax+by=gcd(a,b) 的一组解 x,y
+
 int ex_gcd(int a,int b,int &x,int &y){
     if(b==0){
         x=1,y=0;
@@ -456,26 +534,46 @@ int ex_gcd(int a,int b,int &x,int &y){
     y-=a/b*x;
     return g;
 }
+
 二元一次方程
+
 解 ax + by = c
+
 一、有解判定
+
 根据裴蜀定理：当且仅当 gcd(a,b) | c 时有解
+
 二、特解 X,Y
+
 根据拓展欧几里得定理：
+
 先求 x, y ：ax + by = gcd(a,b)
+
 X = x * c/gcd(a,b)
+
 Y = y * c/gcd(a,b)
+
 三、通解
+
 参数 kx,ky ：
+
 kx = b / gcd(a,b)
+
 ky = a / gcd(a,b)
+
 通解 x,y：
+
 x = X + k \* kx
+
 y = Y - k \* ky
+
 四、最小正整数解
+
 x = ( X % kx + kx ) % kx
 \end{lstlisting}
+\columnbreak
 \section{数据结构}
+\needspace{8\baselineskip}
 \subsection{并查集}
 \begin{lstlisting}
 template<class>
@@ -518,6 +616,7 @@ public:
     }
 };
 \end{lstlisting}
+\needspace{8\baselineskip}
 \subsection{单调队列}
 大常数
 \begin{lstlisting}
@@ -545,6 +644,7 @@ public:
     bool empty()const{return q.size()==0;}
 };
 \end{lstlisting}
+\needspace{8\baselineskip}
 \subsection{单调栈}
 获取每一个元素两侧第一个大于（小于）它的元素
 \begin{lstlisting}
@@ -577,6 +677,7 @@ void init(){
     }
 }
 \end{lstlisting}
+\needspace{8\baselineskip}
 \subsection{懒删除堆}
 \begin{lstlisting}
 template<typename T,typename cmp=less<T>>
@@ -613,6 +714,7 @@ template<typename T,typename cmp=less<T>>
         }
     };
 \end{lstlisting}
+\needspace{8\baselineskip}
 \subsection{Trie}
 支持数字，大小写字母
 \begin{lstlisting}
@@ -683,12 +785,13 @@ public:
     }
 };
 \end{lstlisting}
+\needspace{8\baselineskip}
 \subsection{异或Trie}
-
 add(x) 向集合中添加元素
-del(x) 从集合中删除元素
-query(x) y 属于集合，查询 x XOR y 的最大值
 
+del(x) 从集合中删除元素
+
+query(x) y 属于集合，查询 x XOR y 的最大值
 \begin{lstlisting}
 template<typename T>
 class Trie{
@@ -739,6 +842,7 @@ public:
     } 
 };
 \end{lstlisting}
+\needspace{8\baselineskip}
 \subsection{树状数组}
 单点修改，区间查询
 
@@ -766,6 +870,7 @@ struct BIT{
 };
 \end{lstlisting}
 不知道怎么整理线段树的板子
+\needspace{8\baselineskip}
 \subsection{线段树}
 区间加，区间乘，查询区间和
 \begin{lstlisting}
@@ -846,7 +951,7 @@ int query(int x,int l,int r,int ql,int qr){
     return ans;
 }
 \end{lstlisting}
-
+\needspace{8\baselineskip}
 \subsection{线段树}
 区间加，区间覆盖，查询区间最大值
 \begin{lstlisting}
@@ -948,8 +1053,8 @@ void solve(){
     } 
 }
 \end{lstlisting}
-
-\subsection{线段树3}
+\needspace{8\baselineskip}
+\subsection{线段树}
 新生赛打卡题
 
 01线段树，区间和并
@@ -965,7 +1070,6 @@ int R1[N<<2];
 int M1[N<<2];
 int tag1[N<<2];
 int tag2[N<<2];
-
 void up(int x,int l,int r){
     int mid=(l+r)>>1;
     sum[x]=sum[x<<1]+sum[x<<1|1];
@@ -1079,11 +1183,11 @@ int query4(int x,int l,int r,int ql,int qr){
     return max(res,L+R);
 }
 \end{lstlisting}
-
-\subsection{线段树4}
+\needspace{8\baselineskip}
+\subsection{线段树}
 矩形面积并，矩形周长并
 \begin{lstlisting}
-    面积
+面积
 const int N=3e5+5;
 struct rectangle{
     int x1,y1,x2,y2; 
@@ -1149,8 +1253,7 @@ ll merge_S(int n){
     }
     return ans;
 }
-
-    周长
+周长
 const int N=1e5+5;
 struct rectangle{
     int x1,y1,x2,y2; 
@@ -1262,9 +1365,35 @@ ll merge_C(int n){
     return scan_x(n)+scan_y(n);
 }
 \end{lstlisting}
-
-
+\columnbreak
 \section{图论}
+\needspace{8\baselineskip}
+\subsection{链式前向星}
+\begin{lstlisting}
+const int N=1e5;//点
+const int M=1e6;//边
+int tot;
+int head[N];
+int nex[M];
+int to[M];
+T weight[M];
+void init(int n){
+    tot=0;
+    memset(head,-1,sizeof(head));
+}
+void addEdge(int u,int v,T w){
+    nex[tot]=head[u];
+    to[tot]=v;
+    weight[tot]=w;
+    head[u]=tot++;
+}
+// 遍历从 u 出发的边
+for(int ei=head[u];ei!=-1;ei=nex[ei]){
+    int v=to[ei];
+    T w=weight[ei];
+}
+\end{lstlisting}
+\needspace{8\baselineskip}
 \subsection{拓扑排序}
 有向无环图
 \begin{lstlisting}
@@ -1272,13 +1401,13 @@ const int N=1e5;
 vector<int>gra[N];
 int in[N];
 void top(int n){
-    for(int u=1;u<=n;++u){
+    for(int u=0;u<n;++u){
         for(int v:gra[u]){
             in[v]++;
         }
     }
     queue<int>q;
-    for(int i=1;i<=n;++i){
+    for(int i=0;i<n;++i){
         if(in[i]==0){
             q.push(i);
         }
@@ -1294,27 +1423,243 @@ void top(int n){
     }
 }
 \end{lstlisting}
-
-\subsection{}
+\needspace{8\baselineskip}
+\subsection{最小生成树Kruskal}
 \begin{lstlisting}
-
+class UF{
+    vector<int>fa;
+    int cnt;
+public:
+    UF(int n):fa(n),cnt(n){
+        for(int i=0;i<n;++i){
+            fa[i]=i;
+        }
+    }
+    int find(int x){
+        return fa[x]==x?x:fa[x]=find(fa[x]);
+    }
+    bool merge(int a,int b){
+        a=find(a);
+        b=find(b);
+        if(a==b)return 0;
+        fa[a]=b;
+        cnt--;
+        return 1;
+    }
+    int count(){
+        return cnt;
+    }
+};
+struct edge{
+    int u,v;
+    T w;
+};
+T kruskal(int n,vector<edge>&Edges){
+    UF st(n);
+    T sum=0;
+    for(auto&[u,v,w]:Edges){
+        if(st.merge(u,v)){
+            sum+=w;
+        }
+    }
+    if(st.count()==1){
+        return sum;
+    }
+    return -1;
+}
 \end{lstlisting}
-\subsection{}
+\needspace{8\baselineskip}
+\subsection{最小生成树Prim}
 \begin{lstlisting}
-
+T prim(int start,int n){
+    // {w,u}
+    priority_queue<pair<T,int>,vector<pair<T,int>>,greater<>>pq;
+    vector<char>vis(n,0);
+    T sum=0;
+    int cnt=0;
+    pq.push({0,start});
+    while(pq.size()){
+        auto [d,u]=pq.top();
+        pq.pop();
+        if(vis[u])continue;
+        vis[u]=1;
+        sum+=d;
+        cnt++;
+        if(cnt==n){
+            return sum;
+        }
+        for(int ei=head[u];ei!=-1;ei=nex[ei]){
+            int v=to[ei];
+            if(!vis[v]){
+                pq.push({weight[ei],v});
+            }
+        }
+    }
+    return -1;
+}
 \end{lstlisting}
-\subsection{}
+\needspace{8\baselineskip}
+\subsection{最短路Floyd}
 \begin{lstlisting}
-
+const int N=105;
+const int INF=0x3f3f3f3f;
+T dis[N][N];
+void init(int n){
+    for(int i=0;i<n;++i){
+        for(int j=0;j<n;++j){
+            if(i==j)dis[i][j]=0;
+            else dis[i][j]=INF;
+        }
+    }
+}
+void floyd(int n){
+    for(int k=0;k<n;++k){
+        for(int i=0;i<n;++i){
+            if(i==k||dis[i][k]==INF)continue;
+            for(int j=0;j<n;++j){
+                if(j==k||dis[k][j]==INF)continue;
+                if(dis[i][j]>dis[i][k]+dis[k][j]){
+                    dis[i][j]=dis[i][k]+dis[k][j];
+                }
+            }
+        }
+    }
+}
+bool check(int n){
+    // floyd(n);
+    for(int i=0;i<n;++i){
+        if(dis[i][i]<0){
+            return 1; //有负环
+        }
+    }
+    return 0; //无负环
+}
 \end{lstlisting}
-\subsection{}
+\needspace{8\baselineskip}
+\subsection{最短路Dijkstral}
 \begin{lstlisting}
-
+T dis[N];
+bool vis[N];
+void dijkstra(int start){
+    memset(dis,0x3f,sizeof(dis));
+    memset(vis,0,sizeof(vis));
+    // {w,u}
+    priority_queue<pair<T,int>,vector<pair<T,int>>,greater<>>pq;
+    dis[start]=0;
+    pq.push({0,start});
+    while(pq.size()){
+        auto [c,u]=pq.top();
+        pq.pop();
+        if(vis[u])continue;
+        vis[u]=1;
+        for(int ei=head[u];ei!=-1;ei=nex[ei]){
+            int v=to[ei];
+            T w=weight[ei];
+            T nc=c+w;
+            if(dis[v]>nc){
+                dis[v]=nc;
+                pq.push({nc,v});
+            }
+        }
+    }
+}
 \end{lstlisting}
-\subsection{}
+\needspace{8\baselineskip}
+\subsection{最短路SPFA}
 \begin{lstlisting}
-
+T dis[N];
+bool in[N];
+void spfa(int start){
+    memset(dis,0x3f,sizeof(dis));
+    memset(in,0,sizeof(in));
+    queue<int>q;
+    dis[start]=0;
+    q.push(start);
+    in[start]=1;
+    while(q.size()){
+        int u=q.front();
+        q.pop();
+        in[u]=0;
+        for(int ei=head[u];ei!=-1;ei=nex[ei]){
+            int v=to[ei];
+            T w=weight[ei];
+            if(dis[v]>dis[u]+w){
+                dis[v]=dis[u]+w;
+                if(in[v]==0){
+                    q.push(v);
+                    in[v]=1;
+                }
+            }
+        }
+    }
+}
+// 检查负环
+int cnt[N]; //cnt[u]:从起点到u的最短路上的边数
+bool spfa_check(int s, int n){
+    memset(dis,0x3f,sizeof(dis));
+    memset(cnt,0,sizeof(cnt));
+    memset(in,0,sizeof(in));
+    queue<int> q;
+    q.push(s);
+    dis[s]=0;
+    cnt[s]=0;
+    in[s]=1;
+    while(q.size()){
+        int u=q.front();
+        q.pop();
+        in[u]=0;
+        for(int ei=head[u];ei!=-1;ei=nex[ei]){
+            int v=to[ei];
+            T w=weight[ei];
+            if(dis[v]>dis[u]+w){
+                dis[v]=dis[u]+w;
+                cnt[v]=cnt[u]+1;
+                
+                if(cnt[v]>=n)return 1; //有负环
+                
+                if(in[v]==0){
+                    q.push(v);
+                    in[v]=1;
+                }
+            }
+        }
+    }
+    return 0; //无负环
+}
 \end{lstlisting}
-
+\needspace{8\baselineskip}
+\subsection{LCA}
+\begin{lstlisting}
+const int N = 1e5 + 5;
+int depth[N], fa[N][20];
+vector<int> adj[N];
+//dfs(1,0) 根节点为 1
+void dfs(int u,int f){
+    depth[u]=depth[f]+1;
+    fa[u][0]=f;
+    for(int i=1;i<=19;++i){
+        fa[u][i]=fa[fa[u][i-1]][i-1];
+    }
+    for(int v:adj[u]){
+        if(v!=f)dfs(v,u);
+    }
+}
+int lca(int u, int v) {
+    if(depth[u]<depth[v])swap(u,v);
+    for(int i=19;i>=0;--i){
+        if(depth[fa[u][i]]>=depth[v]){
+            u=fa[u][i];
+        }
+    }
+    if(u==v)return u;
+    for(int i=19;i>=0;--i){
+        if(fa[u][i]!=fa[v][i]){
+            u=fa[u][i];
+            v=fa[v][i];
+        }
+    }
+    return fa[u][0];
+}
+\end{lstlisting}
 \end{multicols*}
 \end{document}
