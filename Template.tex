@@ -571,6 +571,34 @@ y = Y - k \* ky
 
 x = ( X % kx + kx ) % kx
 \end{lstlisting}
+
+\subsection{二项式反演}
+“求恰好满足k个条件的方案数” 困难
+
+但 “求强制满足k个条件（其余随意）的方案数” 容易
+
+\begin{lstlisting}
+设一共有n个条件
+
+g(i)表示 恰好 满足i个条件的方案数
+
+f(k)表示 至少 满足k个条件的方案数（选k个条件强制满足，剩下的n-k个随意） 
+
+vector<long long>f(n+1); 
+
+long long ans=0;
+
+for(int i=k;i<=n;++i){
+    long long term=C(i,k)*f[i]%MOD;
+    if((i-k)&1){
+        ans=(ans-term+MOD)%MOD;
+    }
+    else{
+        ans=(ans+term)%MOD;
+    }
+}
+
+\end{lstlisting}
 \columnbreak
 \section{数据结构}
 \needspace{8\baselineskip}
