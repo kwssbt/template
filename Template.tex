@@ -2427,6 +2427,178 @@ void solve(){
 }
 \end{lstlisting}
 
+\needspace{8\baselineskip}
+\subsection{3.28-abc-DE}
+\begin{lstlisting}
+// D
+
+#include<bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+
+const int MAX=1e9;
+
+void solve(){
+    int n;
+    cin>>n;
+
+    vector<string>nums;
+    for(ll i=1;i<=MAX;i<<=1){
+        nums.push_back(to_string(i));
+    }
+    vector<ll>ans;
+    unordered_set<string>vis;
+    queue<string>q;
+    for(string s:nums){
+        q.push(s);
+        vis.insert(s);
+    }
+    while(q.size()){
+        string u=q.front();
+        q.pop();
+        ans.push_back(stoll(u));
+
+        for(string s:nums){
+            string v=u+s;
+
+            if(v.size()>9)continue;
+            
+            if(vis.count(v)==0){
+                vis.insert(v);
+                q.push(v);
+            }
+        }
+    }
+
+    sort(ans.begin(),ans.end());
+    cout<<ans[n-1];
+}
+
+int main(){
+    cin.tie(0)->sync_with_stdio(0);
+    int _=1;
+    //cin>>_;
+    while(_--)solve();
+}
+
+// E
+
+#include<bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+
+const int inf=0x3f3f3f3f;
+const int N=3010;
+int dis[N][N];
+
+// Kruskal
+struct UF{
+    vector<int>fa;
+    UF(int n):fa(n+1){
+        for(int i=1;i<=n;++i){
+            fa[i]=i;
+        }
+    }
+    int find(int x){
+        return fa[x]==x?x:fa[x]=find(fa[x]);
+    }
+    bool merge(int a,int b){
+        a=find(a);
+        b=find(b);
+        if(a==b)return 0;
+        fa[a]=b;
+        return 1;
+    }
+};
+struct e{
+    int u,v,w;
+};
+vector<e>E;
+
+// 树
+int tot;
+int head[N];
+int to[N<<1];
+int nex[N<<1];
+int weight[N<<1];
+void init(){
+    tot=0;
+    memset(head,-1,sizeof(head));
+}
+void adde(int u,int v,int w){
+    nex[tot]=head[u];
+    to[tot]=v;
+    weight[tot]=w;
+    head[u]=tot++;
+}
+
+
+void solve(){
+    int n;
+    cin>>n;
+    for(int i=1;i<n;++i){
+        for(int j=i+1;j<=n;++j){
+            int w;
+            cin>>w;
+            dis[i][j]=dis[j][i]=w;
+            E.push_back({i,j,w});
+            E.push_back({j,i,w});
+        }
+    }
+
+    // 建树
+    UF uf(n);
+    sort(E.begin(),E.end(),[&](e a, e b){return a.w<b.w;});
+    init();
+    for(auto [u,v,w]:E){
+        if(uf.merge(u,v)){
+            adde(u,v,w);
+            adde(v,u,w);
+        }
+    }
+
+    // check
+    for(int i=1;i<=n;++i){
+        // dij
+        vector<int>dij_dis(n+1,inf);
+        vector<char>vis(n+1,0);
+        priority_queue<pair<int,int>,vector<pair<int,int>>,greater<>>pq;
+        pq.push({0,i});
+        dij_dis[i]=0;
+        while(pq.size()){
+            auto [c,u]=pq.top();
+            pq.pop();
+            if(vis[u])continue;
+            vis[u]=1;
+            for(int ei=head[u];ei!=-1;ei=nex[ei]){
+                int v=to[ei];
+                int w=weight[ei];
+                int nc=c+w;
+                if(dij_dis[v]>nc){
+                    dij_dis[v]=nc;
+                    pq.push({nc,v});
+                }
+            }
+        }
+        for(int j=1;j<=n;++j){
+            if(dis[i][j]!=dij_dis[j]){
+                cout<<"No";
+                return;
+            }
+        }
+    }
+    cout<<"Yes";
+}
+int main(){
+    cin.tie(0)->sync_with_stdio(0);
+    int _=1;
+    //cin>>_;
+    while(_--)solve();
+}
+\end{lstlisting}
+
 
 \end{multicols*}
 \end{document}
